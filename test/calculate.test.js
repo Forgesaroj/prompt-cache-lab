@@ -31,6 +31,8 @@ test("finds the first request count that breaks even", () => {
 
 test("rejects invalid numeric input", () => {
   assert.throws(() => calculateScenario({ requests: 0, reusableTokens: 1, dynamicInputTokens: 0, outputTokens: 0, rates }));
+  assert.throws(() => calculateScenario({ requests: 2.5, reusableTokens: 1, dynamicInputTokens: 0, outputTokens: 0, rates }));
   assert.throws(() => calculateScenario({ requests: 2, cacheWrites: 3, reusableTokens: 1, dynamicInputTokens: 0, outputTokens: 0, rates }));
+  assert.throws(() => calculateScenario({ requests: 2, cacheWrites: 0.5, reusableTokens: 1, dynamicInputTokens: 0, outputTokens: 0, rates }));
   assert.throws(() => breakEvenRequests({ reusableTokens: -1, rates }));
 });

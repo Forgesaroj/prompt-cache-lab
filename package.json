@@ -1,12 +1,16 @@
 {
-  "name": "@forgesaroj/prompt-cache-lab",
-  "version": "0.1.0",
+  "name": "@tsrjl/prompt-cache-lab",
+  "version": "0.2.0",
   "description": "Provider-neutral prompt caching cost and break-even calculator.",
   "type": "module",
-  "exports": "./src/calculate.js",
+  "exports": {
+    ".": "./src/calculate.js",
+    "./presets": "./src/presets.js",
+    "./state": "./src/state.js"
+  },
   "scripts": {
     "test": "node --test",
-    "check": "node --check src/calculate.js && node --check web/app.js"
+    "check": "node --check src/calculate.js && node --check src/presets.js && node --check src/state.js && node --check web/app.js"
   },
   "engines": { "node": ">=20" },
   "keywords": ["llm", "prompt-cache", "cost-calculator", "ai"],

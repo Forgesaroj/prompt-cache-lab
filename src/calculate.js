@@ -1,7 +1,7 @@
 const TOKEN_SCALE = 1_000_000;
 
 export function calculateScenario(input) {
-  const requests = positive(input.requests, "requests");
+  const requests = positiveInteger(input.requests, "requests");
   const reusableTokens = nonNegative(input.reusableTokens, "reusableTokens");
   const dynamicInputTokens = nonNegative(input.dynamicInputTokens, "dynamicInputTokens");
   const outputTokens = nonNegative(input.outputTokens, "outputTokens");
@@ -11,7 +11,7 @@ export function calculateScenario(input) {
     ((reusableTokens + dynamicInputTokens) / TOKEN_SCALE) * rates.input +
     (outputTokens / TOKEN_SCALE) * rates.output
   );
-  const writes = input.cacheWrites == null ? 1 : nonNegative(input.cacheWrites, "cacheWrites");
+  const writes = input.cacheWrites == null ? 1 : nonNegativeInteger(input.cacheWrites, "cacheWrites");
   if (writes > requests) throw new TypeError("cacheWrites cannot exceed requests");
   const reads = Math.max(0, requests - writes);
   const withCache =
@@ -58,6 +58,18 @@ function nonNegative(value, name) {
 
 function positive(value, name) {
   const number = nonNegative(value, name);
+  if (number === 0) throw new TypeError(`${name} must be greater than zero`);
+  return number;
+}
+
+function nonNegativeInteger(value, name) {
+  const number = nonNegative(value, name);
+  if (!Number.isInteger(number)) throw new TypeError(`${name} must be a whole number`);
+  return number;
+}
+
+function positiveInteger(value, name) {
+  const number = nonNegativeInteger(value, name);
   if (number === 0) throw new TypeError(`${name} must be greater than zero`);
   return number;
 }

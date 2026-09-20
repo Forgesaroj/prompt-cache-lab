@@ -3,36 +3,75 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
-  <meta name="description" content="Estimate LLM prompt-cache costs, savings, and break-even reuse.">
-  <title>Prompt Cache Lab</title>
+  <meta name="description" content="Compare LLM prompt-cache cost, savings, and break-even reuse with source-dated pricing presets.">
+  <meta name="theme-color" content="#07111f">
+  <title>Prompt Cache Lab — see when caching pays</title>
   <link rel="stylesheet" href="styles.css">
 </head>
 <body>
+  <nav class="nav" aria-label="Primary">
+    <a class="brand" href="./" aria-label="Prompt Cache Lab home"><span aria-hidden="true">P</span> Prompt Cache Lab</a>
+    <div class="nav-links"><span class="privacy">Runs locally · no data sent</span><a href="https://github.com/Forgesaroj/prompt-cache-lab">GitHub</a></div>
+  </nav>
   <main>
-    <header><p class="eyebrow">Provider-neutral calculator</p><h1>Prompt Cache Lab</h1><p>See when caching a long prompt starts saving money. Enter rates from your provider’s current pricing page.</p></header>
-    <form id="calculator">
-      <fieldset><legend>Usage</legend>
-        <label>Requests <input name="requests" type="number" min="1" value="100" required></label>
-        <label>Reusable tokens/request <input name="reusableTokens" type="number" min="1" value="50000" required></label>
-        <label>Dynamic input tokens/request <input name="dynamicInputTokens" type="number" min="0" value="1000" required></label>
-        <label>Output tokens/request <input name="outputTokens" type="number" min="0" value="1500" required></label>
-        <label>Cache writes <input name="cacheWrites" type="number" min="0" value="1" required></label>
-      </fieldset>
-      <fieldset><legend>USD per 1M tokens</legend>
-        <label>Input <input name="input" type="number" min="0" step="0.001" value="3" required></label>
-        <label>Output <input name="output" type="number" min="0" step="0.001" value="15" required></label>
-        <label>Cache write <input name="cacheWrite" type="number" min="0" step="0.001" value="3.75" required></label>
-        <label>Cache read <input name="cacheRead" type="number" min="0" step="0.001" value="0.30" required></label>
-      </fieldset>
-    </form>
-    <section class="results" aria-live="polite">
-      <article><span>Without cache</span><strong id="without">—</strong></article>
-      <article><span>With cache</span><strong id="with">—</strong></article>
-      <article class="accent"><span>Estimated savings</span><strong id="savings">—</strong></article>
-      <p id="detail"></p>
+    <header class="hero">
+      <p class="eyebrow">Open-source LLM cost calculator</p>
+      <h1>Know when your prompt cache <em>actually</em> pays off.</h1>
+      <p class="lede">Model reusable context, cache expiry, dynamic input and output in one transparent calculation. Start from verified pricing or enter your own rates.</p>
+    </header>
+    <section class="workspace" aria-label="Calculator">
+      <form id="calculator" class="panel controls">
+        <div class="section-heading"><div><p class="step">01</p><h2>Choose pricing</h2></div><button id="reset" type="button" class="text-button">Reset</button></div>
+        <label class="wide">Model preset
+          <select name="preset" id="preset"><option value="custom">Custom rates</option></select>
+        </label>
+        <p id="source-note" class="source-note">Custom rates · USD per million tokens</p>
+        <fieldset>
+          <legend>Usage per scenario</legend>
+          <div class="field-grid">
+            <label>Requests <input name="requests" type="number" min="1" value="100" required inputmode="numeric"><small>Total calls in this scenario</small></label>
+            <label>Cache writes <input name="cacheWrites" type="number" min="0" value="1" required inputmode="numeric"><small>Rewrites after creation or expiry</small></label>
+            <label>Reusable tokens <input name="reusableTokens" type="number" min="1" value="50000" required inputmode="numeric"><small>Stable context cached per request</small></label>
+            <label>Dynamic input <input name="dynamicInputTokens" type="number" min="0" value="1000" required inputmode="numeric"><small>Uncached tokens per request</small></label>
+            <label>Output tokens <input name="outputTokens" type="number" min="0" value="1500" required inputmode="numeric"><small>Generated tokens per request</small></label>
+          </div>
+        </fieldset>
+        <fieldset>
+          <legend>USD per 1M tokens</legend>
+          <div class="rate-grid">
+            <label>Input <input name="input" type="number" min="0" step="0.001" value="2" required></label>
+            <label>Output <input name="output" type="number" min="0" step="0.001" value="10" required></label>
+            <label>Cache write <input name="cacheWrite" type="number" min="0" step="0.001" value="2.5" required></label>
+            <label>Cache read <input name="cacheRead" type="number" min="0" step="0.001" value="0.2" required></label>
+          </div>
+        </fieldset>
+      </form>
+      <section class="panel results">
+        <div class="section-heading"><div><p class="step">02</p><h2>Read the result</h2></div><button id="share" type="button" class="share-button">Copy share link</button></div>
+        <div id="verdict" class="verdict" role="status" aria-live="polite" aria-atomic="true"><span>Estimated savings</span><strong id="savings">—</strong><p id="verdict-copy">Enter a valid scenario to calculate.</p></div>
+        <div class="comparison" aria-label="Cost comparison">
+          <div class="bar-row"><div class="bar-label"><span>Without cache</span><strong id="without">—</strong></div><div class="track"><span id="without-bar" class="bar uncached"></span></div></div>
+          <div class="bar-row"><div class="bar-label"><span>With cache</span><strong id="with">—</strong></div><div class="track"><span id="with-bar" class="bar cached"></span></div></div>
+        </div>
+        <dl class="metrics">
+          <div><dt>Break-even</dt><dd id="break-even">—</dd></div>
+          <div><dt>Cache reads</dt><dd id="reads">—</dd></div>
+          <div><dt>Cache writes</dt><dd id="writes">—</dd></div>
+        </dl>
+        <p id="status" class="status" role="status"></p>
+      </section>
     </section>
-    <p class="note">Estimates exclude provider-specific minimum cacheable lengths, TTL behavior, rounding, and taxes. Confirm current rates before budgeting.</p>
+    <section class="explain" aria-labelledby="explain-title">
+      <p class="eyebrow">The transparent part</p><h2 id="explain-title">What the calculation includes</h2>
+      <div class="explain-grid">
+        <article><span>1</span><h3>First writes</h3><p>Reusable tokens are charged at the cache-write rate whenever the cache is created or refreshed.</p></article>
+        <article><span>2</span><h3>Later reads</h3><p>Remaining requests reuse that context at the cache-read rate while dynamic input stays uncached.</p></article>
+        <article><span>3</span><h3>Every output</h3><p>Output tokens are charged on every request in both scenarios, so the comparison stays like-for-like.</p></article>
+      </div>
+      <p class="boundary">Estimates exclude taxes, rounding, minimum cacheable lengths, provider-specific eligibility, request tiers, storage-time charges, and regional modifiers. Verify the linked source before budgeting.</p>
+    </section>
   </main>
+  <footer><span>Built openly by <a href="https://github.com/Forgesaroj">Saroj Rijal</a></span><span>MIT licensed · no tracking</span></footer>
   <script type="module" src="app.js"></script>
 </body>
 </html>
