@@ -10,8 +10,10 @@ test("stages Pages with resolvable root-relative module imports", () => {
   try {
     buildPages(resolve(import.meta.dirname, ".."), output);
     const app = readFileSync(resolve(output, "app.js"), "utf8");
-    assert.match(app, /from "\.\/src\/calculate\.js"/);
+    const index = readFileSync(resolve(output, "index.html"), "utf8");
+    assert.match(app, /from "\.\/src\/calculate\.js\?v=[a-f0-9]{12}"/);
     assert.doesNotMatch(app, /from "\.\.\/src\//);
+    assert.match(index, /src="app\.js\?v=[a-f0-9]{12}"/);
   } finally {
     rmSync(output, { recursive: true, force: true });
   }

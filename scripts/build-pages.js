@@ -1,4 +1,5 @@
 import { copyFileSync, existsSync, mkdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
+import { createHash } from "node:crypto";
 import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -9,14 +10,26 @@ export function buildPages(root = DEFAULT_ROOT, output = resolve(root, "_site"))
   rmSync(output, { recursive: true, force: true });
   mkdirSync(resolve(output, "src"), { recursive: true });
 
-  copy(root, output, "web/index.html", "index.html");
   copy(root, output, "web/styles.css", "styles.css");
-  for (const name of ["calculate.js", "presets.js", "state.js"]) {
-    copy(root, output, `src/${name}`, `src/${name}`);
+  const moduleNames = ["calculate.js", "presets.js", "state.js"];
+  const moduleSources = moduleNames.map((name) => [name, readFileSync(resolve(root, "src", name), "utf8")]);
+  const appSource = readFileSync(resolve(root, "web/app.js"), "utf8");
+  const fingerprint = createHash("sha256")
+    .update(appSource)
+    .update(moduleSources.map(([, source]) => source).join(""))
+    .digest("hex")
+    .slice(0, 12);
+
+  for (const [name, source] of moduleSources) {
+    writeFileSync(resolve(output, "src", name), source);
   }
 
-  const app = readFileSync(resolve(root, "web/app.js"), "utf8")
-    .replaceAll('from "../src/', 'from "./src/');
+  const app = appSource
+    .replaceAll('from "../src/', 'from "./src/')
+    .replace(/from "(\.\/src\/[^"]+)"/g, `from "$1?v=${fingerprint}"`);
+  const index = readFileSync(resolve(root, "web/index.html"), "utf8")
+    .replace('src="app.js"', `src="app.js?v=${fingerprint}"`);
+  writeFileSync(resolve(output, "index.html"), index);
   writeFileSync(resolve(output, "app.js"), app);
   writeFileSync(resolve(output, ".nojekyll"), "");
   validateLocalImports(output, app);
@@ -31,7 +44,8 @@ function validateLocalImports(output, source) {
   const imports = [...source.matchAll(/from\s+["'](\.\/[^"']+)["']/g)].map((match) => match[1]);
   if (imports.length === 0) throw new Error("Deployed app has no local module imports to validate");
   for (const modulePath of imports) {
-    if (!existsSync(resolve(output, modulePath))) throw new Error(`Missing deployed module: ${modulePath}`);
+    const [filePath] = modulePath.split("?");
+    if (!existsSync(resolve(output, filePath))) throw new Error(`Missing deployed module: ${modulePath}`);
   }
 }
 
