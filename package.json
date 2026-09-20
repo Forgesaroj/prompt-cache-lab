@@ -10,7 +10,8 @@
   },
   "scripts": {
     "test": "node --test",
-    "check": "node --check src/calculate.js && node --check src/presets.js && node --check src/state.js && node --check web/app.js"
+    "check": "node --check src/calculate.js && node --check src/presets.js && node --check src/state.js && node --check web/app.js && node --check scripts/build-pages.js",
+    "build:pages": "node scripts/build-pages.js"
   },
   "engines": { "node": ">=20" },
   "keywords": ["llm", "prompt-cache", "cost-calculator", "ai"],
