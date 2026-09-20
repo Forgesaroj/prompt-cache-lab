@@ -24,11 +24,7 @@ jobs:
       - run: npm test
       - run: npm run check
       - name: Stage static site
-        run: |
-          mkdir -p _site/src
-          cp web/index.html web/app.js web/styles.css _site/
-          cp src/calculate.js src/presets.js src/state.js _site/src/
-          touch _site/.nojekyll
+        run: npm run build:pages
       - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v3
         with:
