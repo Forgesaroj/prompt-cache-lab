@@ -1,0 +1,38 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="description" content="Estimate LLM prompt-cache costs, savings, and break-even reuse.">
+  <title>Prompt Cache Lab</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <main>
+    <header><p class="eyebrow">Provider-neutral calculator</p><h1>Prompt Cache Lab</h1><p>See when caching a long prompt starts saving money. Enter rates from your provider’s current pricing page.</p></header>
+    <form id="calculator">
+      <fieldset><legend>Usage</legend>
+        <label>Requests <input name="requests" type="number" min="1" value="100" required></label>
+        <label>Reusable tokens/request <input name="reusableTokens" type="number" min="1" value="50000" required></label>
+        <label>Dynamic input tokens/request <input name="dynamicInputTokens" type="number" min="0" value="1000" required></label>
+        <label>Output tokens/request <input name="outputTokens" type="number" min="0" value="1500" required></label>
+        <label>Cache writes <input name="cacheWrites" type="number" min="0" value="1" required></label>
+      </fieldset>
+      <fieldset><legend>USD per 1M tokens</legend>
+        <label>Input <input name="input" type="number" min="0" step="0.001" value="3" required></label>
+        <label>Output <input name="output" type="number" min="0" step="0.001" value="15" required></label>
+        <label>Cache write <input name="cacheWrite" type="number" min="0" step="0.001" value="3.75" required></label>
+        <label>Cache read <input name="cacheRead" type="number" min="0" step="0.001" value="0.30" required></label>
+      </fieldset>
+    </form>
+    <section class="results" aria-live="polite">
+      <article><span>Without cache</span><strong id="without">—</strong></article>
+      <article><span>With cache</span><strong id="with">—</strong></article>
+      <article class="accent"><span>Estimated savings</span><strong id="savings">—</strong></article>
+      <p id="detail"></p>
+    </section>
+    <p class="note">Estimates exclude provider-specific minimum cacheable lengths, TTL behavior, rounding, and taxes. Confirm current rates before budgeting.</p>
+  </main>
+  <script type="module" src="app.js"></script>
+</body>
+</html>

@@ -1,0 +1,13 @@
+name: Calculation bug
+description: Report an incorrect result or UI problem
+title: "bug: "
+labels: [bug]
+body:
+  - type: textarea
+    attributes: { label: Inputs and observed result }
+    validations: { required: true }
+  - type: textarea
+    attributes: { label: Expected result and calculation }
+    validations: { required: true }
+  - type: input
+    attributes: { label: Browser or Node version }
